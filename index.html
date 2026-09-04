@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TranslaNurse - Clinical AI Translator & Patient Safety Auditor</title>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --border: #e2e8f0;
+      --pass: #16a34a;
+      --warn: #d97706;
+      --fail: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0 0 6px 0;
+      color: var(--primary-dark);
+      font-size: 1.8rem;
+    }
+
+    p.subtitle {
+      margin: 0;
+      color: #64748b;
+      font-size: 0.95rem;
+    }
+
+    .api-banner {
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+    }
+
+    .api-banner label {
+      display: block;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #0369a1;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .api-input-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 820px) {
+      .grid { grid-template-columns: 1fr; }
+      .api-input-group { flex-direction: column; }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      font-size: 1.2rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    label.field-label {
+      display: block;
+      font-weight: 600;
+      margin: 14px 0 4px 0;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #475569;
+    }
+
+    input[type="text"], input[type="password"], textarea, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.95rem;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    button.btn-primary {
+      margin-top: 16px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      font-size: 1rem;
+      transition: background-color 0.2s;
+    }
+
+    button.btn-primary:hover {
+      background-color: var(--primary-dark);
+    }
+
+    button.btn-primary:disabled {
+      background-color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .result-box {
+      background-color: #f8fafc;
+      border-left: 4px solid var(--primary);
+      padding: 14px;
+      border-radius: 0 6px 6px 0;
+      margin-top: 8px;
+      white-space: pre-wrap;
+      font-size: 0.95rem;
+      color: #1e293b;
+      min-height: 100px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .metric-card {
+      border: 1px solid var(--border);
+      background-color: #fafafa;
+      padding: 10px;
+      border-radius: 6px;
+      text-align: center;
+    }
+
+    .metric-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      color: #64748b;
+      font-weight: bold;
+    }
+
+    .metric-score {
+      font-size: 0.92rem;
+      font-weight: bold;
+      margin-top: 4px;
+      color: var(--pass);
+    }
+
+    ul.audit-list {
+      padding-left: 20px;
+      margin: 8px 0;
+      font-size: 0.9rem;
+    }
+
+    ul.audit-list li {
+      margin-bottom: 6px;
+    }
+
+    .badge {
+      display: inline-block;
+      background-color: #e0f2fe;
+      color: #0369a1;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      margin: 2px;
+      font-weight: 600;
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    .history-table th, .history-table td {
+      border: 1px solid var(--border);
+      padding: 10px;
+      text-align: left;
+    }
+
+    .history-table th {
+      background-color: #f1f5f9;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .btn-clear {
+      background-color: #ef4444;
+      color: white;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .btn-reload {
+      background-color: #0284c7;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .status-pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .status-ready { background-color: #dcfce7; color: #15803d; }
+    .status-waiting { background-color: #fef3c7; color: #b45309; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>TranslaNurse</h1>
+    <p class="subtitle">Real-Time Gemini AI Clinical Translator & Patient Safety Auditor</p>
+  </header>
+
+  <div class="api-banner">
+    <label for="gemini-key">
+      Google Gemini API Connector 
+      <span id="key-status" class="status-pill status-waiting">No Key Saved</span>
+    </label>
+    <div class="api-input-group">
+      <input type="password" id="gemini-key" placeholder="Paste your Gemini API key (AIzaSy...)...">
+      <button class="btn-reload" style="padding: 10px 18px; font-size: 0.9rem;" onclick="saveApiKey()">Save Key</button>
+    </div>
+    <small style="color: #64748b; margin-top: 6px; display: block;">
+      Your key is stored locally in your browser's private storage (localStorage) and never uploaded to any third-party server.
+    </small>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>1. Clinical Input & Persona</h2>
+
+      <label class="field-label" for="clinical-input">Medical Jargon, Clinical Notes, or Diagnostics</label>
+      <textarea id="clinical-input" placeholder="Enter ANY complex medical phrases, e.g.:&#10;- 'Patient exhibits idiopathic thrombocytopenic purpura with petechiae.'&#10;- 'Status post left hemicolectomy, NPO, monitor for anastomotic leak.'&#10;- 'Hepatosplenomegaly secondary to Epstein-Barr viral infection.'"></textarea>
+
+      <label class="field-label" for="reading-grade">Target Health Literacy Level</label>
+      <select id="reading-grade">
+        <option value="5th Grade (Simple plain words, short analogies)">5th Grade (Simple, Plain Language)</option>
+        <option value="8th Grade (Standard clear patient discharge level)" selected>8th Grade (Standard Patient Level)</option>
+        <option value="12th Grade (Comprehensive medical literacy)">12th Grade (High Health Literacy)</option>
+      </select>
+
+      <label class="field-label" for="patient-persona">Cultural & Demographic Alignment</label>
+      <select id="patient-persona">
+        <option value="General Public (Direct, empathetic, jargon-free)">General Public</option>
+        <option value="Geriatric / Elderly (Large structured bullet points, memory cues)">Geriatric / Elderly Patient</option>
+        <option value="Family-Centered / Caregiver-Inclusive (Instructions for family care partners)">Family-Centered / Caregivers</option>
+        <option value="Pediatric Parent (Comforting, clear step-by-step action items)">Pediatric / Parent Guidance</option>
+      </select>
+
+      <button id="translate-btn" class="btn-primary" onclick="runAiTranslation()">Translate & Audit with Gemini</button>
+    </div>
+
+    <div class="card">
+      <h2>2. Patient-Ready Education & Safety Audit</h2>
+
+      <label class="field-label">Simplified Patient Material</label>
+      <div id="translated-output" class="result-box">
+        <em>Output will render here after translation...</em>
+      </div>
+
+      <label class="field-label">Safety & Literacy Dashboard</label>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="metric-title">Health Literacy</div>
+          <div id="score-literacy" class="metric-score">-</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Cultural Fit</div>
+          <div id="score-cultural" class="metric-score">-</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Clinical Safety</div>
+          <div id="score-safety" class="metric-score">-</div>
+        </div>
+      </div>
+
+      <label class="field-label">Jargon Conversion & Clinical Audit</label>
+      <div id="audit-details">
+        <p style="font-size: 0.9rem; color: #64748b;">Deconstructed medical terms, omitted jargon, and safety warnings will populate here.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>
+      3. Medical Translation Audit History
+      <button class="btn-clear" onclick="clearAllHistory()">Clear History</button>
+    </h2>
+    <div style="overflow-x: auto;">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Original Medical Jargon</th>
+            <th>Target Level</th>
+            <th>Simplified Patient Output</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="history-rows">
+          <tr>
+            <td colspan="5" style="text-align: center; color: #64748b;">No translation history recorded yet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    loadSavedApiKey();
+    renderHistory();
+  });
+
+  function saveApiKey() {
+    const key = document.getElementById('gemini-key').value.trim();
+    if (!key) {
+      alert("Please enter a valid Gemini API key.");
+      return;
+    }
+    localStorage.setItem('translanurse_gemini_key', key);
+    updateKeyBadge(true);
+    alert("API Key saved securely in your browser!");
+  }
+
+  function loadSavedApiKey() {
+    const saved = localStorage.getItem('translanurse_gemini_key');
+    if (saved) {
+      document.getElementById('gemini-key').value = saved;
+      updateKeyBadge(true);
+    } else {
+      updateKeyBadge(false);
+    }
+  }
+
+  function updateKeyBadge(isSaved) {
+    const badge = document.getElementById('key-status');
+    if (isSaved) {
+      badge.textContent = "Key Connected";
+      badge.className = "status-pill status-ready";
+    } else {
+      badge.textContent = "No Key Saved";
+      badge.className = "status-pill status-waiting";
+    }
+  }
+
+  async function runAiTranslation() {
+    const apiKey = document.getElementById('gemini-key').value.trim();
+    const rawInput = document.getElementById('clinical-input').value.trim();
+    const gradeLevel = document.getElementById('reading-grade').value;
+    const persona = document.getElementById('patient-persona').value;
+    const translateBtn = document.getElementById('translate-btn');
+
+    if (!apiKey) {
+      alert("Please enter and save your Google Gemini API Key at the top before translating.");
+      return;
+    }
+
+    if (!rawInput) {
+      alert("Please enter medical text or clinical jargon to translate.");
+      return;
+    }
+
+    translateBtn.disabled = true;
+    translateBtn.textContent = "AI Translating & Auditing...";
+    document.getElementById('translated-output').innerText = "Analyzing complex clinical concepts and verifying safety...";
+
+    const systemPrompt = `
+You are TranslaNurse, a clinical nurse educator and health literacy expert.
+Your job:
+1. Identify and extract ALL complex medical terms, physiological mechanisms, Latin phrases, and abbreviations in the input.
+2. Translate the explanation into safe, empathetic, patient-friendly education strictly tailored to:
+   - Target Reading Level: ${gradeLevel}
+   - Cultural/Demographic Persona: ${persona}
+3. Perform a rigorous clinical safety audit ensuring that:
+   - Critical instructions (e.g., NPO, dosage schedules, red flags, warning symptoms) are NOT lost in over-simplification.
+   - Medical facts are 100% accurate.
+
+You must respond ONLY with a raw JSON object matching this schema (do not wrap in markdown or formatting other than valid JSON):
+{
+  "patientEducation": "Clear, friendly, formatted patient-ready explanation using simple words and analogies.",
+  "jargonDetected": ["List of all difficult terms detected and converted"],
+  "readingLevelScore": "Evaluation of literacy grade (e.g. Passed - 5th Grade Level)",
+  "culturalFitScore": "Evaluation of alignment (e.g. Tailored for Elderly Care)",
+  "safetyScore": "Clinical safety status (e.g. Passed - All Red Flags Preserved)",
+  "clinicalAuditPoints": [
+    "Specific notes detailing how medical jargon was simplified safely without loss of meaning."
+  ]
+}
+`;
+
+    const primaryUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    const requestBody = {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: `${systemPrompt}\n\nClinical Input: "${rawInput}"` }]
+        }
+      ],
+      generationConfig: {
+        responseMimeType: "application/json"
+      }
+    };
+
+    try {
+      let response = await fetch(primaryUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        response = await fetch(fallbackUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestBody)
+        });
+      }
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error?.message || "Failed to communicate with Gemini API.");
+      }
+
+      const data = await response.json();
+      const rawText = data.candidates[0].content.parts[0].text;
+      const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+      const result = JSON.parse(cleanJson);
+
+      displayResults(result);
+      saveHistory(rawInput, gradeLevel, result.patientEducation);
+
+    } catch (error) {
+      alert("Error: " + error.message);
+      document.getElementById('translated-output').innerText = "Translation failed. Please verify your Gemini API key and try again.";
+    } finally {
+      translateBtn.disabled = false;
+      translateBtn.textContent = "Translate & Audit with Gemini";
+    }
+  }
+
+  function displayResults(data) {
+    document.getElementById('translated-output').innerText = data.patientEducation;
+    document.getElementById('score-literacy').textContent = data.readingLevelScore;
+    document.getElementById('score-cultural').textContent = data.culturalFitScore;
+    document.getElementById('score-safety').textContent = data.safetyScore;
+
+    let auditHtml = '<div style="margin-bottom: 8px;"><strong>Identified Jargon Converted:</strong><br>';
+    if (data.jargonDetected && data.jargonDetected.length > 0) {
+      data.jargonDetected.forEach(term => {
+        auditHtml += `<span class="badge">${escapeHtml(term)}</span>`;
+      });
+    } else {
+      auditHtml += `<em>No heavy jargon detected; general sentence structure simplified.</em>`;
+    }
+    auditHtml += '</div>';
+
+    auditHtml += '<ul class="audit-list">';
+    if (data.clinicalAuditPoints) {
+      data.clinicalAuditPoints.forEach(pt => {
+        auditHtml += `<li>${escapeHtml(pt)}</li>`;
+      });
+    }
+    auditHtml += '</ul>';
+
+    document.getElementById('audit-details').innerHTML = auditHtml;
+  }
+
+  function saveHistory(input, grade, output) {
+    const item = {
+      id: Date.now(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      input: input,
+      grade: grade,
+      output: output
+    };
+
+    let history = JSON.parse(localStorage.getItem('translanurse_prod_history')) || [];
+    history.unshift(item);
+    localStorage.setItem('translanurse_prod_history', JSON.stringify(history));
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const tbody = document.getElementById('history-rows');
+    const history = JSON.parse(localStorage.getItem('translanurse_prod_history')) || [];
+
+    if (history.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b;">No translation history recorded yet.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = history.map(item => `
+      <tr>
+        <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">${item.time}</td>
+        <td><strong>${escapeHtml(item.input)}</strong></td>
+        <td>${escapeHtml(item.grade)}</td>
+        <td>${escapeHtml(item.output)}</td>
+        <td><button class="btn-reload" onclick="reloadItem(${item.id})">Reload</button></td>
+      </tr>
+    `).join('');
+  }
+
+  function reloadItem(id) {
+    const history = JSON.parse(localStorage.getItem('translanurse_prod_history')) || [];
+    const found = history.find(e => e.id === id);
+    if (found) {
+      document.getElementById('clinical-input').value = found.input;
+      runAiTranslation();
+    }
+  }
+
+  function clearAllHistory() {
+    if (confirm("Are you sure you want to clear your entire translation audit history?")) {
+      localStorage.removeItem('translanurse_prod_history');
+      renderHistory();
+    }
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+  }
+</script>
+
+</body>
+</html>
