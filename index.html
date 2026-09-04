@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TranslaNurse - Advanced Clinical AI Translator</title>
-  <!-- TAB ICON LOGO -->
-  <link rel="icon" type="image/png" href="TranslaNurse (1).png">
+  <!-- EMBEDDED TAB ICON -->
+  <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
   <style>
     /* =========================================
        CSS VARIABLES & THEME SETUP
@@ -439,10 +439,10 @@
 <body>
 
 <div class="container">
-  <!-- HEADER WITH LOGO -->
+  <!-- HEADER WITH EMBEDDED LOGO -->
   <header>
     <div class="header-brand">
-      <img src="TranslaNurse (1).png" alt="TranslaNurse Logo" class="header-logo">
+      <img src="https://raw.githubusercontent.com/czas-coding/translanurse-01/main/TranslaNurse%20(1).png" alt="TranslaNurse Logo" class="header-logo">
       <div class="header-titles">
         <h1>TranslaNurse Engine</h1>
         <p>Secure Clinical AI Translator, Detailed Plain Language Engine & Safety Auditor</p>
@@ -555,7 +555,7 @@
         </thead>
         <tbody id="history-rows">
           <tr>
-            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No translations recorded yet.</td>
+            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No translation history recorded yet.</td>
           </tr>
         </tbody>
       </table>
@@ -827,16 +827,16 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
       output: output.length > 150 ? output.substring(0, 150) + '...' : output
     };
 
-    let history = JSON.parse(localStorage.getItem('translanurse_v5_history')) || [];
+    let history = JSON.parse(localStorage.getItem('translanurse_v6_history')) || [];
     history.unshift(item);
     if (history.length > 30) history = history.slice(0, 30);
-    localStorage.setItem('translanurse_v5_history', JSON.stringify(history));
+    localStorage.setItem('translanurse_v6_history', JSON.stringify(history));
     renderHistory();
   }
 
   function renderHistory() {
     const tbody = document.getElementById('history-rows');
-    const history = JSON.parse(localStorage.getItem('translanurse_v5_history')) || [];
+    const history = JSON.parse(localStorage.getItem('translanurse_v6_history')) || [];
 
     if (history.length === 0) {
       tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No translation history recorded yet.</td></tr>`;
@@ -871,7 +871,7 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
   }
 
   function reloadItem(id) {
-    const history = JSON.parse(localStorage.getItem('translanurse_v5_history')) || [];
+    const history = JSON.parse(localStorage.getItem('translanurse_v6_history')) || [];
     const found = history.find(e => e.id === id);
     if (found) {
       document.getElementById('clinical-input').value = found.input.replace('...', '');
@@ -880,15 +880,15 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
   }
 
   function deleteItem(id) {
-    let history = JSON.parse(localStorage.getItem('translanurse_v5_history')) || [];
+    let history = JSON.parse(localStorage.getItem('translanurse_v6_history')) || [];
     history = history.filter(e => e.id !== id);
-    localStorage.setItem('translanurse_v5_history', JSON.stringify(history));
+    localStorage.setItem('translanurse_v6_history', JSON.stringify(history));
     renderHistory();
   }
 
   function clearAllHistory() {
     if (confirm("Are you sure you want to permanently clear your history log?")) {
-      localStorage.removeItem('translanurse_v5_history');
+      localStorage.removeItem('translanurse_v6_history');
       renderHistory();
     }
   }
