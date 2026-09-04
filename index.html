@@ -159,10 +159,20 @@
       padding: 14px;
       border-radius: 0 6px 6px 0;
       margin-top: 8px;
-      white-space: pre-wrap;
+      white-space: pre-wrap; /* This ensures line breaks are rendered properly */
       font-size: 0.95rem;
       color: #1e293b;
       min-height: 100px;
+    }
+    
+    .analogy-box {
+      background-color: #fff7ed;
+      border-left: 4px solid #f97316;
+      padding: 14px;
+      border-radius: 0 6px 6px 0;
+      margin-top: 8px;
+      font-size: 0.95rem;
+      color: #431407;
     }
 
     .metric-grid {
@@ -191,7 +201,7 @@
       font-size: 0.92rem;
       font-weight: bold;
       margin-top: 4px;
-      color: var(--pass);
+      color: var(--primary-dark);
     }
 
     ul.audit-list {
@@ -206,14 +216,16 @@
 
     .badge {
       display: inline-block;
-      background-color: #e0f2fe;
-      color: #0369a1;
-      padding: 2px 8px;
+      padding: 4px 10px;
       border-radius: 4px;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       margin: 2px;
-      font-weight: 600;
+      font-weight: 700;
     }
+
+    .badge-jargon { background-color: #e0f2fe; color: #0369a1; }
+    .lab-safe { background-color: #dcfce7; color: #15803d; border: 1px solid #16a34a; }
+    .lab-unsafe { background-color: #fee2e2; color: #b91c1c; border: 1px solid #dc2626; }
 
     .history-table {
       width: 100%;
@@ -263,6 +275,15 @@
     }
     .status-ready { background-color: #dcfce7; color: #15803d; }
     .status-waiting { background-color: #fef3c7; color: #b45309; }
+    
+    .flex-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 14px;
+      margin-bottom: 4px;
+    }
+    .flex-header label { margin: 0; }
   </style>
 </head>
 <body>
@@ -291,8 +312,8 @@
     <div class="card">
       <h2>1. Clinical Input & Persona</h2>
 
-      <label class="field-label" for="clinical-input">Medical Jargon, Clinical Notes, or Diagnostics</label>
-      <textarea id="clinical-input" placeholder="Enter ANY complex medical phrases, e.g.:&#10;- 'Patient exhibits idiopathic thrombocytopenic purpura with petechiae.'&#10;- 'Status post left hemicolectomy, NPO, monitor for anastomotic leak.'&#10;- 'Hepatosplenomegaly secondary to Epstein-Barr viral infection.'"></textarea>
+      <label class="field-label" for="clinical-input">Medical Jargon, Clinical Notes, or Lab Results</label>
+      <textarea id="clinical-input" placeholder="Enter ANY complex medical phrases or labs, e.g.:&#10;- 'Patient exhibits idiopathic thrombocytopenic purpura with petechiae.'&#10;- 'Potassium 6.8 mEq/L, patient reporting palpitations.'&#10;- 'Hepatosplenomegaly secondary to Epstein-Barr viral infection.'"></textarea>
 
       <label class="field-label" for="reading-grade">Target Health Literacy Level</label>
       <select id="reading-grade">
@@ -315,9 +336,19 @@
     <div class="card">
       <h2>2. Patient-Ready Education & Safety Audit</h2>
 
-      <label class="field-label">Simplified Patient Material</label>
+      <div class="flex-header">
+        <label class="field-label">Simplified Patient Material</label>
+        <div id="lab-safety-container">
+          </div>
+      </div>
+      
       <div id="translated-output" class="result-box">
         <em>Output will render here after translation...</em>
+      </div>
+
+      <label class="field-label">Kid-Friendly Analogy</label>
+      <div id="kid-analogy-output" class="analogy-box">
+        <em>A fun, simple analogy for children will appear here...</em>
       </div>
 
       <label class="field-label">Safety & Literacy Dashboard</label>
@@ -353,8 +384,8 @@
         <thead>
           <tr>
             <th>Time</th>
-            <th>Original Medical Jargon</th>
-            <th>Target Level</th>
+            <th>Original Medical Input</th>
+            <th>Safety Tag</th>
             <th>Simplified Patient Output</th>
             <th>Action</th>
           </tr>
@@ -420,40 +451,42 @@
     }
 
     if (!rawInput) {
-      alert("Please enter medical text or clinical jargon to translate.");
+      alert("Please enter medical text, lab results, or clinical jargon to translate.");
       return;
     }
 
     translateBtn.disabled = true;
     translateBtn.textContent = "AI Translating & Auditing...";
-    document.getElementById('translated-output').innerText = "Analyzing complex clinical concepts and verifying safety...";
+    document.getElementById('translated-output').innerText = "Analyzing complex clinical concepts, labs, and verifying safety...";
+    document.getElementById('lab-safety-container').innerHTML = '';
 
     const systemPrompt = `
 You are TranslaNurse, a clinical nurse educator and health literacy expert.
 Your job:
-1. Identify and extract ALL complex medical terms, physiological mechanisms, Latin phrases, and abbreviations in the input.
+1. Identify and extract ALL complex medical terms, lab results, and abbreviations in the input.
 2. Translate the explanation into safe, empathetic, patient-friendly education strictly tailored to:
    - Target Reading Level: ${gradeLevel}
    - Cultural/Demographic Persona: ${persona}
-3. Perform a rigorous clinical safety audit ensuring that:
-   - Critical instructions (e.g., NPO, dosage schedules, red flags, warning symptoms) are NOT lost in over-simplification.
-   - Medical facts are 100% accurate.
+   - IMPORTANT FORMATTING: Break the explanation into short paragraphs using double line breaks (\\n\\n). Do not output a single massive block of text. Use bullet points if helpful.
+3. Provide a simple, fun analogy specifically for kids (e.g., comparing blood vessels to pipes, or white blood cells to superheroes).
+4. Perform a rigorous clinical safety audit ensuring that critical instructions are preserved.
+5. Evaluate any lab results, vitals, or conditions mentioned. Determine if they are generally "SAFE" (stable/normal) or "UNSAFE - Must consult a doctor" (abnormal/critical).
 
-You must respond ONLY with a raw JSON object matching this schema (do not wrap in markdown or formatting other than valid JSON):
+You must respond ONLY with a raw JSON object matching this exact schema (do not wrap in markdown or formatting other than valid JSON):
 {
-  "patientEducation": "Clear, friendly, formatted patient-ready explanation using simple words and analogies.",
-  "jargonDetected": ["List of all difficult terms detected and converted"],
-  "readingLevelScore": "Evaluation of literacy grade (e.g. Passed - 5th Grade Level)",
-  "culturalFitScore": "Evaluation of alignment (e.g. Tailored for Elderly Care)",
-  "safetyScore": "Clinical safety status (e.g. Passed - All Red Flags Preserved)",
-  "clinicalAuditPoints": [
-    "Specific notes detailing how medical jargon was simplified safely without loss of meaning."
-  ]
+  "patientEducation": "Clear, formatted explanation with paragraph breaks (\\n\\n).",
+  "kidAnalogy": "A short, fun, easy-to-understand analogy for a child.",
+  "labSafetyStatus": "Output EXACTLY 'SAFE' or 'UNSAFE - Must consult a doctor'",
+  "jargonDetected": ["List of all difficult terms converted"],
+  "readingLevelScore": "Evaluation of literacy grade",
+  "culturalFitScore": "Evaluation of alignment",
+  "safetyScore": "Clinical safety status regarding instructions",
+  "clinicalAuditPoints": ["Notes detailing how jargon was simplified safely."]
 }
 `;
 
-    const primaryUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-    const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const primaryUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+    const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
 
     const requestBody = {
       contents: [
@@ -461,10 +494,7 @@ You must respond ONLY with a raw JSON object matching this schema (do not wrap i
           role: "user",
           parts: [{ text: `${systemPrompt}\n\nClinical Input: "${rawInput}"` }]
         }
-      ],
-      generationConfig: {
-        responseMimeType: "application/json"
-      }
+      ]
     };
 
     try {
@@ -489,15 +519,16 @@ You must respond ONLY with a raw JSON object matching this schema (do not wrap i
 
       const data = await response.json();
       const rawText = data.candidates[0].content.parts[0].text;
-      const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+      
+      let cleanJson = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
       const result = JSON.parse(cleanJson);
 
       displayResults(result);
-      saveHistory(rawInput, gradeLevel, result.patientEducation);
+      saveHistory(rawInput, result.labSafetyStatus, result.patientEducation);
 
     } catch (error) {
-      alert("Error: " + error.message);
-      document.getElementById('translated-output').innerText = "Translation failed. Please verify your Gemini API key and try again.";
+      alert("API Communication Error: " + error.message);
+      document.getElementById('translated-output').innerText = "Translation failed. Ensure your API key is correct and try again.";
     } finally {
       translateBtn.disabled = false;
       translateBtn.textContent = "Translate & Audit with Gemini";
@@ -505,87 +536,7 @@ You must respond ONLY with a raw JSON object matching this schema (do not wrap i
   }
 
   function displayResults(data) {
-    document.getElementById('translated-output').innerText = data.patientEducation;
-    document.getElementById('score-literacy').textContent = data.readingLevelScore;
-    document.getElementById('score-cultural').textContent = data.culturalFitScore;
-    document.getElementById('score-safety').textContent = data.safetyScore;
-
-    let auditHtml = '<div style="margin-bottom: 8px;"><strong>Identified Jargon Converted:</strong><br>';
-    if (data.jargonDetected && data.jargonDetected.length > 0) {
-      data.jargonDetected.forEach(term => {
-        auditHtml += `<span class="badge">${escapeHtml(term)}</span>`;
-      });
-    } else {
-      auditHtml += `<em>No heavy jargon detected; general sentence structure simplified.</em>`;
-    }
-    auditHtml += '</div>';
-
-    auditHtml += '<ul class="audit-list">';
-    if (data.clinicalAuditPoints) {
-      data.clinicalAuditPoints.forEach(pt => {
-        auditHtml += `<li>${escapeHtml(pt)}</li>`;
-      });
-    }
-    auditHtml += '</ul>';
-
-    document.getElementById('audit-details').innerHTML = auditHtml;
-  }
-
-  function saveHistory(input, grade, output) {
-    const item = {
-      id: Date.now(),
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      input: input,
-      grade: grade,
-      output: output
-    };
-
-    let history = JSON.parse(localStorage.getItem('translanurse_prod_history')) || [];
-    history.unshift(item);
-    localStorage.setItem('translanurse_prod_history', JSON.stringify(history));
-    renderHistory();
-  }
-
-  function renderHistory() {
-    const tbody = document.getElementById('history-rows');
-    const history = JSON.parse(localStorage.getItem('translanurse_prod_history')) || [];
-
-    if (history.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b;">No translation history recorded yet.</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = history.map(item => `
-      <tr>
-        <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">${item.time}</td>
-        <td><strong>${escapeHtml(item.input)}</strong></td>
-        <td>${escapeHtml(item.grade)}</td>
-        <td>${escapeHtml(item.output)}</td>
-        <td><button class="btn-reload" onclick="reloadItem(${item.id})">Reload</button></td>
-      </tr>
-    `).join('');
-  }
-
-  function reloadItem(id) {
-    const history = JSON.parse(localStorage.getItem('translanurse_prod_history')) || [];
-    const found = history.find(e => e.id === id);
-    if (found) {
-      document.getElementById('clinical-input').value = found.input;
-      runAiTranslation();
-    }
-  }
-
-  function clearAllHistory() {
-    if (confirm("Are you sure you want to clear your entire translation audit history?")) {
-      localStorage.removeItem('translanurse_prod_history');
-      renderHistory();
-    }
-  }
-
-  function escapeHtml(str) {
-    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-  }
-</script>
-
-</body>
-</html>
+    // 1. Render Spaced Patient Material
+    document.getElementById('translated-output').innerText = data.patientEducation || "Translation completed.";
+    
+    //
