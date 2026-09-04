@@ -631,7 +631,6 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
   "safetyScore": "e.g., Preserved NPO status"
 }`;
 
-    // === UPDATED ENDPOINT TO GEMINI 2.5 FLASH ===
     const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
 
     try {
@@ -647,7 +646,10 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
         })
       });
 
-      if (!response.ok) throw new Error(`API Error ${response.status}`);
+      if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.error?.message || `API Error ${response.status}`);
+      }
       
       const data = await response.json();
       const rawText = data.candidates[0].content.parts[0].text;
@@ -660,7 +662,7 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
 
     } catch (error) {
       console.error("API Call Failed:", error);
-      alert("Error: Google API failed. Dropping to offline mode.");
+      alert("Error: Google API failed. Dropping to offline mode. Console Error: " + error.message);
       runOfflineFallback(rawInput, gradeLevel);
     } finally {
       btn.disabled = false;
@@ -716,11 +718,9 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
      UI RENDERING & EXPORT
      ========================================= */
   function displayResults(data) {
-    // 1. Text & Analogies
     document.getElementById('translated-output').innerText = data.detailedExplanation || "Translation completed.";
     document.getElementById('kid-analogy-output').innerText = data.kidAnalogy || "No analogy provided.";
 
-    // 2. Action Plan
     let actionsHtml = `<ul style="margin:0; padding-left:20px;">`;
     if (data.actionPlan && Array.isArray(data.actionPlan)) {
       data.actionPlan.forEach(action => { actionsHtml += `<li>${escapeHtml(action)}</li>`; });
@@ -730,7 +730,6 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
     actionsHtml += `</ul>`;
     document.getElementById('action-plan-output').innerHTML = actionsHtml;
 
-    // 3. Safety Tags & Reasoning
     let safetyHtml = '';
     const statusText = data.labSafetyStatus || 'SAFE';
     if (statusText.toUpperCase().includes('UNSAFE')) {
@@ -747,7 +746,6 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
       document.getElementById('safety-reasoning-container').style.display = 'none';
     }
 
-    // 4. Jargon Detailed Breakdown
     let jargonHtml = '';
     if (data.jargonBreakdown && Array.isArray(data.jargonBreakdown) && data.jargonBreakdown.length > 0) {
       jargonHtml = `<ul class="jargon-list">`;
@@ -760,7 +758,6 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
     }
     document.getElementById('jargon-details').innerHTML = jargonHtml;
 
-    // 5. Dashboard Metrics
     document.getElementById('score-literacy').textContent = data.readingLevelScore || "-";
     document.getElementById('score-cultural').textContent = data.culturalFitScore || "-";
     document.getElementById('score-safety').textContent = data.safetyScore || "-";
