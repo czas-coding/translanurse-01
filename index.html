@@ -335,6 +335,7 @@
     }
 
     .lab-safe { background-color: var(--pass-bg); color: var(--pass); border: 1px solid var(--pass); }
+    .lab-warn { background-color: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); }
     .lab-unsafe { background-color: var(--fail-bg); color: var(--fail); border: 1px solid var(--fail); }
 
     /* =========================================
@@ -439,7 +440,7 @@
       <h2 class="card-header">1. Clinical Input & Patient Context</h2>
 
       <label class="field-label" for="clinical-input">Medical Jargon, Clinical Notes, or Lab Results</label>
-      <textarea id="clinical-input" placeholder="Paste doctor's notes, lab results, or complex terminology here...&#10;&#10;Examples:&#10;- 'Pt presents with idiopathic thrombocytopenic purpura.'&#10;- 'K+ is 6.8 mEq/L, peaked T waves on EKG.'&#10;- 'Instructions: NPO after midnight, hold ACE inhibitors.'"></textarea>
+      <textarea id="clinical-input" placeholder="Paste doctor's notes, lab results, or complex terminology here...&#10;&#10;Examples:&#10;- 'WBC count is normal at 7,500/mcL'&#10;- 'K+ is 6.8 mEq/L, peaked T waves'&#10;- 'Instructions: NPO after midnight'"></textarea>
 
       <label class="field-label" for="reading-grade">Target Health Literacy Level</label>
       <select id="reading-grade">
@@ -547,12 +548,10 @@
   /* =========================================
      CONFIGURATION & THEME
      ========================================= */
-  // Split the API Key so GitHub security scanners do not detect it!
   const keyPart1 = "AQ.Ab8RN6J_YZwcA3PysVoSz"; 
   const keyPart2 = "RU8dYotRobKEY-dyifHPy4m0kjwow"; 
   const GEMINI_API_KEY = keyPart1 + keyPart2;
 
-  // Handle Dark/Light Theme
   function toggleTheme() {
     const body = document.body;
     const btn = document.getElementById('theme-toggle');
@@ -575,7 +574,7 @@
   document.addEventListener('DOMContentLoaded', renderHistory);
 
   /* =========================================
-     CORE TRANSLATION ENGINE (WITH AUTO-RETRY)
+     CORE TRANSLATION ENGINE (WITH SMART TAGS)
      ========================================= */
   async function runTranslationEngine() {
     const rawInput = document.getElementById('clinical-input').value.trim();
@@ -590,7 +589,6 @@
       return;
     }
 
-    // UI Loading State
     btn.disabled = true;
     loader.style.display = 'inline-block';
     btnText.textContent = "Processing Details...";
@@ -601,44 +599,47 @@
 
     const systemPrompt = `
 You are TranslaNurse, an expert clinical nurse educator. 
-Translate the medical jargon/labs into safe, highly detailed patient-facing materials.
+Translate the medical jargon/labs/anatomical terms into safe, highly detailed patient-facing materials.
 
 Target Specifications:
 - Reading Level: ${gradeLevel}
 - Audience Persona: ${persona}
 
+Rules for Safety Tagging:
+1. "SAFE": Use this if the input describes normal lab values, standard anatomical terms (like antecubital fossa), educational concepts, or routine non-urgent instructions.
+2. "CAUTION - Monitor & Follow-Up": Use this if the input shows mild abnormalities or terms that require careful monitoring and routine physician follow-up.
+3. "UNSAFE - Must consult a doctor": Use this ONLY if the input describes dangerous, critical abnormal values or high-risk emergent clinical findings. Do NOT flag normal terms or standard anatomical inputs as unsafe.
+
 Requirements:
-1. WHAT IT MEANS: Provide a highly detailed, comprehensive explanation of the condition or lab result. Use double line breaks (\\n\\n) to create short paragraphs. Explain the "why" and "how" simply.
-2. WHAT CAN I DO: Create a specific, detailed, bulleted "Action Plan" telling the patient exactly what they need to do next to manage this.
-3. KID-FRIENDLY ANALOGY: Provide a fun, simple analogy for a child.
-4. LAB/CONDITION SAFETY: Output EXACTLY "SAFE" or "UNSAFE - Must consult a doctor".
-5. SAFETY REASONING: Provide a detailed explanation as to WHY this is considered safe or unsafe based on clinical standards.
-6. JARGON EXPLANATION: Identify EVERY complex medical word inserted. Provide a detailed explanation for each word so the patient knows exactly what term was simplified.
+1. WHAT IT MEANS: Comprehensive, detailed explanation. Use double line breaks (\\n\\n).
+2. WHAT CAN I DO: Specific, detailed, bulleted "Action Plan".
+3. KID-FRIENDLY ANALOGY: A short, fun analogy for a child.
+4. SAFETY STATUS: Output EXACTLY ONE of these three strings: "SAFE", "CAUTION - Monitor & Follow-Up", or "UNSAFE - Must consult a doctor".
+5. SAFETY REASONING: Detailed explanation of why this safety tag was chosen.
+6. JARGON EXPLANATION: Identify complex medical words and explain them clearly.
 
 Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping, just raw JSON:
 {
-  "detailedExplanation": "Deep, detailed, formatted explanation of what it means (use \\n\\n).",
+  "detailedExplanation": "Deep, detailed, formatted explanation (use \\n\\n).",
   "actionPlan": ["Detailed action 1", "Detailed action 2"],
   "kidAnalogy": "A short, fun analogy for a child.",
-  "labSafetyStatus": "SAFE or UNSAFE - Must consult a doctor",
-  "safetyReasoning": "Detailed explanation of why it is safe or unsafe.",
+  "labSafetyStatus": "SAFE or CAUTION - Monitor & Follow-Up or UNSAFE - Must consult a doctor",
+  "safetyReasoning": "Detailed explanation of why it is safe, caution, or unsafe.",
   "jargonBreakdown": [
     { "term": "Original Jargon Word", "explanation": "Detailed explanation of what this word means." }
   ],
-  "readingLevelScore": "e.g., Passed - 8th Grade",
-  "culturalFitScore": "e.g., Aligned to Geriatric",
-  "safetyScore": "e.g., Preserved NPO status"
+  "readingLevelScore": "Passed - 8th Grade",
+  "culturalFitScore": "Aligned to Target",
+  "safetyScore": "Preserved Clinical Safety"
 }`;
 
-    // Using the exact working cURL model path
-    const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${GEMINI_API_KEY}`;
 
     let maxRetries = 3;
     let attempt = 0;
     let success = false;
     let resultData = null;
 
-    // Retry loop to handle high demand spikes automatically
     while (attempt < maxRetries && !success) {
       try {
         attempt++;
@@ -668,12 +669,10 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
       } catch (error) {
         console.warn(`Attempt ${attempt} failed: ${error.message}`);
         if (attempt >= maxRetries) {
-          console.error("All retries failed. Dropping to offline mode.");
           alert("Google API is experiencing high traffic. Falling back to offline dictionary.");
           runOfflineFallback(rawInput, gradeLevel);
           break;
         }
-        // Wait 2 seconds before trying again
         btnText.textContent = `High traffic, retrying (${attempt}/${maxRetries})...`;
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
@@ -684,7 +683,6 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
       saveToHistory(rawInput, resultData.labSafetyStatus, resultData.detailedExplanation);
     }
 
-    // Reset UI state
     btn.disabled = false;
     loader.style.display = 'none';
     btnText.textContent = "Analyze & Translate Details";
@@ -695,38 +693,35 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
      ========================================= */
   function runOfflineFallback(input, grade) {
     const localDict = [
-      { term: "Aphasia", regex: /aphasia/gi, replace: "difficulty speaking or understanding words", explanation: "Aphasia is a condition caused by brain damage that affects your ability to communicate. It can make speaking, writing, and understanding language very hard.", safe: true, action: "Be patient with communication. Try writing things down or using hand signals." },
-      { term: "Thrombocytopenia", regex: /thrombocytopenia|thrombocytopenic/gi, replace: "having a low number of blood platelets", explanation: "Thrombocytopenia means your blood doesn't have enough platelets. Platelets are cells that clump together to help your blood clot and stop bleeding.", safe: false, action: "Avoid activities that cause bruising. Use a soft toothbrush and electric razor." },
-      { term: "Purpura / Petechiae", regex: /purpura|petechiae/gi, replace: "tiny purple spots on the skin from small bleeds", explanation: "These are small, reddish-purple spots on the skin. They happen when tiny blood vessels break and leak blood just under the skin surface.", safe: false, action: "Report any new spots or unexplained bleeding to your doctor immediately." },
-      { term: "NPO", regex: /npo/gi, replace: "nothing to eat or drink by mouth", explanation: "NPO is a Latin medical abbreviation meaning 'nil per os'. It means absolutely no food, liquids, or even water can be swallowed.", safe: true, action: "Do not eat or drink anything, not even water, until the doctor says it's okay." },
-      { term: "Hyperkalemia", regex: /potassium.*[6-9]/gi, replace: "dangerously high potassium levels", explanation: "High potassium affects the electrical signals in your heart. If it gets too high, it can cause dangerous, life-threatening heart rhythms.", safe: false, action: "Seek medical attention immediately in the emergency room to protect your heart rhythm." },
-      { term: "Idiopathic", regex: /idiopathic/gi, replace: "happening for an unknown reason", explanation: "In medicine, 'idiopathic' is used to describe a disease or condition that arises spontaneously or for which the cause is entirely unknown.", safe: true, action: "Continue monitoring symptoms and attend all follow-up appointments." }
+      { term: "Aphasia", regex: /aphasia/gi, replace: "difficulty speaking or understanding words", explanation: "Aphasia is a condition caused by brain damage that affects your ability to communicate.", safe: "SAFE", action: "Be patient with communication." },
+      { term: "WBC", regex: /wbc|white blood cell/gi, replace: "white blood cells", explanation: "White blood cells are your body's infection-fighting immune cells.", safe: "SAFE", action: "Review lab values with your healthcare provider." },
+      { term: "Thrombocytopenia", regex: /thrombocytopenia/gi, replace: "low blood platelets", explanation: "Low platelets reduce blood clotting capability.", safe: "UNSAFE - Must consult a doctor", action: "Avoid bruising activities." }
     ];
 
     let translated = input;
     let jargonFound = [];
     let actions = [];
-    let isUnsafe = false;
+    let safetyStatus = "SAFE";
 
     localDict.forEach(item => {
       if (item.regex.test(input)) {
         jargonFound.push({ term: item.term, explanation: item.explanation });
         actions.push(item.action);
         translated = translated.replace(item.regex, `[${item.replace}]`);
-        if (!item.safe) isUnsafe = true;
+        if (item.safetyStatus === "UNSAFE - Must consult a doctor") safetyStatus = item.safetyStatus;
       }
     });
 
     const mockResult = {
-      detailedExplanation: "Based on our offline medical dictionary, here is what this means for you in plain language:\n\n" + translated + "\n\nThis is a simplified breakdown. Please speak to your provider for comprehensive details.",
-      actionPlan: actions.length > 0 ? actions : ["Follow up with your primary care provider for a detailed review.", "Take medications exactly as prescribed."],
-      kidAnalogy: "Your body is working hard like a busy factory trying to fix a broken machine.",
-      labSafetyStatus: isUnsafe ? "UNSAFE - Must consult a doctor" : "SAFE",
-      safetyReasoning: isUnsafe ? "This text triggered our offline safety alerts because the conditions mentioned (like low platelets or high potassium) can cause severe internal bleeding or heart rhythm issues if left untreated." : "This condition or instruction does not immediately trigger an emergency medical alert in our offline database.",
-      jargonBreakdown: jargonFound.length > 0 ? jargonFound : [{ term: "General Medical Jargon", explanation: "No highly complex offline terms were matched. Using standard reading level simplification." }],
-      readingLevelScore: grade + " (Offline Mode)",
-      culturalFitScore: "Standard Alignment",
-      safetyScore: "Local Database Verified"
+      detailedExplanation: "Offline Mode Translation:\n\n" + translated,
+      actionPlan: actions.length > 0 ? actions : ["Consult your primary care provider."],
+      kidAnalogy: "Your body is working like a well-organized team.",
+      labSafetyStatus: safetyStatus,
+      safetyReasoning: "Evaluated using offline clinical dictionary rules.",
+      jargonBreakdown: jargonFound.length > 0 ? jargonFound : [{ term: "General Term", explanation: "Standard term." }],
+      readingLevelScore: grade + " (Offline)",
+      culturalFitScore: "Standard",
+      safetyScore: "Local Verified"
     };
 
     displayResults(mockResult);
@@ -751,11 +746,16 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
 
     let safetyHtml = '';
     const statusText = data.labSafetyStatus || 'SAFE';
-    if (statusText.toUpperCase().includes('UNSAFE')) {
+    const upperStatus = statusText.toUpperCase();
+
+    if (upperStatus.includes('UNSAFE')) {
       safetyHtml = `<span class="badge lab-unsafe">🚨 ${escapeHtml(statusText)}</span>`;
+    } else if (upperStatus.includes('CAUTION')) {
+      safetyHtml = `<span class="badge lab-warn">⚠️ ${escapeHtml(statusText)}</span>`;
     } else {
       safetyHtml = `<span class="badge lab-safe">✅ ${escapeHtml(statusText)}</span>`;
     }
+
     document.getElementById('lab-safety-container').innerHTML = safetyHtml;
     
     if (data.safetyReasoning) {
@@ -808,16 +808,16 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
       output: output.length > 150 ? output.substring(0, 150) + '...' : output
     };
 
-    let history = JSON.parse(localStorage.getItem('translanurse_v4_history')) || [];
+    let history = JSON.parse(localStorage.getItem('translanurse_v5_history')) || [];
     history.unshift(item);
     if (history.length > 30) history = history.slice(0, 30);
-    localStorage.setItem('translanurse_v4_history', JSON.stringify(history));
+    localStorage.setItem('translanurse_v5_history', JSON.stringify(history));
     renderHistory();
   }
 
   function renderHistory() {
     const tbody = document.getElementById('history-rows');
-    const history = JSON.parse(localStorage.getItem('translanurse_v4_history')) || [];
+    const history = JSON.parse(localStorage.getItem('translanurse_v5_history')) || [];
 
     if (history.length === 0) {
       tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No translation history recorded yet.</td></tr>`;
@@ -825,9 +825,16 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
     }
 
     tbody.innerHTML = history.map(item => {
-      const isUnsafe = item.safety.toUpperCase().includes('UNSAFE');
-      const badgeClass = isUnsafe ? 'lab-unsafe' : 'lab-safe';
-      const icon = isUnsafe ? '🚨' : '✅';
+      const upper = item.safety.toUpperCase();
+      let badgeClass = 'lab-safe';
+      let icon = '✅';
+      if (upper.includes('UNSAFE')) {
+        badgeClass = 'lab-unsafe';
+        icon = '🚨';
+      } else if (upper.includes('CAUTION')) {
+        badgeClass = 'lab-warn';
+        icon = '⚠️';
+      }
       
       return `
       <tr>
@@ -845,7 +852,7 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
   }
 
   function reloadItem(id) {
-    const history = JSON.parse(localStorage.getItem('translanurse_v4_history')) || [];
+    const history = JSON.parse(localStorage.getItem('translanurse_v5_history')) || [];
     const found = history.find(e => e.id === id);
     if (found) {
       document.getElementById('clinical-input').value = found.input.replace('...', '');
@@ -854,15 +861,15 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
   }
 
   function deleteItem(id) {
-    let history = JSON.parse(localStorage.getItem('translanurse_v4_history')) || [];
+    let history = JSON.parse(localStorage.getItem('translanurse_v5_history')) || [];
     history = history.filter(e => e.id !== id);
-    localStorage.setItem('translanurse_v4_history', JSON.stringify(history));
+    localStorage.setItem('translanurse_v5_history', JSON.stringify(history));
     renderHistory();
   }
 
   function clearAllHistory() {
     if (confirm("Are you sure you want to permanently clear your history log?")) {
-      localStorage.removeItem('translanurse_v4_history');
+      localStorage.removeItem('translanurse_v5_history');
       renderHistory();
     }
   }
