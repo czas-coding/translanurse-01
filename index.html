@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TranslaNurse - Clinical AI Translator & Patient Safety Auditor</title>
+  <title>TranslaNurse - Clinical Translator & Patient Safety Auditor</title>
   <style>
     :root {
       --primary: #0284c7;
@@ -17,9 +17,7 @@
       --fail: #dc2626;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -53,29 +51,6 @@
       font-size: 0.95rem;
     }
 
-    .api-banner {
-      background-color: #f0f9ff;
-      border: 1px solid #bae6fd;
-      border-radius: 8px;
-      padding: 14px 18px;
-      margin-bottom: 20px;
-    }
-
-    .api-banner label {
-      display: block;
-      font-weight: 700;
-      font-size: 0.85rem;
-      color: #0369a1;
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .api-input-group {
-      display: flex;
-      gap: 10px;
-    }
-
     .grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -84,7 +59,6 @@
 
     @media (max-width: 820px) {
       .grid { grid-template-columns: 1fr; }
-      .api-input-group { flex-direction: column; }
     }
 
     .card {
@@ -101,9 +75,6 @@
       font-size: 1.2rem;
       border-bottom: 1px solid var(--border);
       padding-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
     }
 
     label.field-label {
@@ -116,7 +87,7 @@
       color: #475569;
     }
 
-    input[type="text"], input[type="password"], textarea, select {
+    textarea, select {
       width: 100%;
       padding: 10px 12px;
       border: 1px solid var(--border);
@@ -144,14 +115,7 @@
       transition: background-color 0.2s;
     }
 
-    button.btn-primary:hover {
-      background-color: var(--primary-dark);
-    }
-
-    button.btn-primary:disabled {
-      background-color: #94a3b8;
-      cursor: not-allowed;
-    }
+    button.btn-primary:hover { background-color: var(--primary-dark); }
 
     .result-box {
       background-color: #f8fafc;
@@ -159,7 +123,7 @@
       padding: 14px;
       border-radius: 0 6px 6px 0;
       margin-top: 8px;
-      white-space: pre-wrap; /* This ensures line breaks are rendered properly */
+      white-space: pre-wrap;
       font-size: 0.95rem;
       color: #1e293b;
       min-height: 100px;
@@ -210,10 +174,6 @@
       font-size: 0.9rem;
     }
 
-    ul.audit-list li {
-      margin-bottom: 6px;
-    }
-
     .badge {
       display: inline-block;
       padding: 4px 10px;
@@ -240,11 +200,7 @@
       text-align: left;
     }
 
-    .history-table th {
-      background-color: #f1f5f9;
-      font-weight: 600;
-      color: #475569;
-    }
+    .history-table th { background-color: #f1f5f9; }
 
     .btn-clear {
       background-color: #ef4444;
@@ -256,26 +212,6 @@
       cursor: pointer;
     }
 
-    .btn-reload {
-      background-color: #0284c7;
-      color: white;
-      border: none;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      cursor: pointer;
-    }
-
-    .status-pill {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-    .status-ready { background-color: #dcfce7; color: #15803d; }
-    .status-waiting { background-color: #fef3c7; color: #b45309; }
-    
     .flex-header {
       display: flex;
       justify-content: space-between;
@@ -283,7 +219,6 @@
       margin-top: 14px;
       margin-bottom: 4px;
     }
-    .flex-header label { margin: 0; }
   </style>
 </head>
 <body>
@@ -291,46 +226,24 @@
 <div class="container">
   <header>
     <h1>TranslaNurse</h1>
-    <p class="subtitle">Real-Time Gemini AI Clinical Translator & Patient Safety Auditor</p>
+    <p class="subtitle">Secure Local Clinical Translator & Patient Safety Auditor</p>
   </header>
-
-  <div class="api-banner">
-    <label for="gemini-key">
-      Google Gemini API Connector 
-      <span id="key-status" class="status-pill status-waiting">No Key Saved</span>
-    </label>
-    <div class="api-input-group">
-      <input type="password" id="gemini-key" placeholder="Paste your Gemini API key (AIzaSy...)...">
-      <button class="btn-reload" style="padding: 10px 18px; font-size: 0.9rem;" onclick="saveApiKey()">Save Key</button>
-    </div>
-    <small style="color: #64748b; margin-top: 6px; display: block;">
-      Your key is stored locally in your browser's private storage (localStorage) and never uploaded to any third-party server.
-    </small>
-  </div>
 
   <div class="grid">
     <div class="card">
       <h2>1. Clinical Input & Persona</h2>
 
       <label class="field-label" for="clinical-input">Medical Jargon, Clinical Notes, or Lab Results</label>
-      <textarea id="clinical-input" placeholder="Enter ANY complex medical phrases or labs, e.g.:&#10;- 'Patient exhibits idiopathic thrombocytopenic purpura with petechiae.'&#10;- 'Potassium 6.8 mEq/L, patient reporting palpitations.'&#10;- 'Hepatosplenomegaly secondary to Epstein-Barr viral infection.'"></textarea>
+      <textarea id="clinical-input" placeholder="Enter ANY complex medical phrases or labs, e.g.:&#10;- 'Patient exhibits idiopathic thrombocytopenic purpura.'&#10;- 'Potassium 6.8 mEq/L'&#10;- 'Aphasia secondary to stroke.'"></textarea>
 
       <label class="field-label" for="reading-grade">Target Health Literacy Level</label>
       <select id="reading-grade">
-        <option value="5th Grade (Simple plain words, short analogies)">5th Grade (Simple, Plain Language)</option>
-        <option value="8th Grade (Standard clear patient discharge level)" selected>8th Grade (Standard Patient Level)</option>
-        <option value="12th Grade (Comprehensive medical literacy)">12th Grade (High Health Literacy)</option>
+        <option value="5th Grade">5th Grade (Simple, Plain Language)</option>
+        <option value="8th Grade" selected>8th Grade (Standard Patient Level)</option>
+        <option value="12th Grade">12th Grade (High Health Literacy)</option>
       </select>
 
-      <label class="field-label" for="patient-persona">Cultural & Demographic Alignment</label>
-      <select id="patient-persona">
-        <option value="General Public (Direct, empathetic, jargon-free)">General Public</option>
-        <option value="Geriatric / Elderly (Large structured bullet points, memory cues)">Geriatric / Elderly Patient</option>
-        <option value="Family-Centered / Caregiver-Inclusive (Instructions for family care partners)">Family-Centered / Caregivers</option>
-        <option value="Pediatric Parent (Comforting, clear step-by-step action items)">Pediatric / Parent Guidance</option>
-      </select>
-
-      <button id="translate-btn" class="btn-primary" onclick="runAiTranslation()">Translate & Audit with Gemini</button>
+      <button class="btn-primary" onclick="runLocalTranslation()">Translate & Audit</button>
     </div>
 
     <div class="card">
@@ -338,8 +251,7 @@
 
       <div class="flex-header">
         <label class="field-label">Simplified Patient Material</label>
-        <div id="lab-safety-container">
-          </div>
+        <div id="lab-safety-container"></div>
       </div>
       
       <div id="translated-output" class="result-box">
@@ -358,10 +270,6 @@
           <div id="score-literacy" class="metric-score">-</div>
         </div>
         <div class="metric-card">
-          <div class="metric-title">Cultural Fit</div>
-          <div id="score-cultural" class="metric-score">-</div>
-        </div>
-        <div class="metric-card">
           <div class="metric-title">Clinical Safety</div>
           <div id="score-safety" class="metric-score">-</div>
         </div>
@@ -369,174 +277,97 @@
 
       <label class="field-label">Jargon Conversion & Clinical Audit</label>
       <div id="audit-details">
-        <p style="font-size: 0.9rem; color: #64748b;">Deconstructed medical terms, omitted jargon, and safety warnings will populate here.</p>
+        <p style="font-size: 0.9rem; color: #64748b;">Deconstructed medical terms and safety warnings will populate here.</p>
       </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>
-      3. Medical Translation Audit History
-      <button class="btn-clear" onclick="clearAllHistory()">Clear History</button>
-    </h2>
-    <div style="overflow-x: auto;">
-      <table class="history-table">
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Original Medical Input</th>
-            <th>Safety Tag</th>
-            <th>Simplified Patient Output</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="history-rows">
-          <tr>
-            <td colspan="5" style="text-align: center; color: #64748b;">No translation history recorded yet.</td>
-          </tr>
-        </tbody>
-      </table>
     </div>
   </div>
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    loadSavedApiKey();
-    renderHistory();
-  });
+  // Robust Local Medical Dictionary
+  const medicalDictionary = [
+    { regex: /aphasia/gi, simple: "difficulty speaking or understanding words", analogy: "Imagine your brain is a phone, but the cell service is glitchy so the words get dropped.", safe: true },
+    { regex: /idiopathic/gi, simple: "happening for an unknown reason", analogy: "It's like a magic trick where things happen, but we don't know exactly how the magician did it.", safe: true },
+    { regex: /thrombocytopenia|thrombocytopenic/gi, simple: "having a low number of platelets (the cells that stop bleeding)", analogy: "Platelets are like little band-aids in your blood. Right now, your body's band-aid box is running a little empty.", safe: false },
+    { regex: /purpura/gi, simple: "purple spots on the skin from tiny bleeds", analogy: "Like when a peach gets a little bruise underneath its skin.", safe: true },
+    { regex: /hepatosplenomegaly/gi, simple: "swelling of both your liver and your spleen", analogy: "Your liver and spleen are like sponges that soaked up a bit too much water and got puffy.", safe: false },
+    { regex: /potassium (?:is )?([6-9]\.\d|\d{2,})/gi, simple: "dangerously high potassium levels in your blood", analogy: "Potassium is the battery power for your heart. Right now, there are too many batteries packed in!", safe: false, alert: true },
+    { regex: /npo/gi, simple: "nothing to eat or drink by mouth", analogy: "Your tummy is on a strict time-out so it can rest perfectly for the doctor.", safe: true },
+    { regex: /hypertension/gi, simple: "high blood pressure", analogy: "It's like turning the garden hose on full blast—the water pushes really hard against the sides.", safe: false },
+    { regex: /dyspnea/gi, simple: "shortness of breath", analogy: "It feels like you just ran a long race, even when you are sitting still.", safe: false }
+  ];
 
-  function saveApiKey() {
-    const key = document.getElementById('gemini-key').value.trim();
-    if (!key) {
-      alert("Please enter a valid Gemini API key.");
-      return;
-    }
-    localStorage.setItem('translanurse_gemini_key', key);
-    updateKeyBadge(true);
-    alert("API Key saved securely in your browser!");
-  }
-
-  function loadSavedApiKey() {
-    const saved = localStorage.getItem('translanurse_gemini_key');
-    if (saved) {
-      document.getElementById('gemini-key').value = saved;
-      updateKeyBadge(true);
-    } else {
-      updateKeyBadge(false);
-    }
-  }
-
-  function updateKeyBadge(isSaved) {
-    const badge = document.getElementById('key-status');
-    if (isSaved) {
-      badge.textContent = "Key Connected";
-      badge.className = "status-pill status-ready";
-    } else {
-      badge.textContent = "No Key Saved";
-      badge.className = "status-pill status-waiting";
-    }
-  }
-
-  async function runAiTranslation() {
-    const apiKey = document.getElementById('gemini-key').value.trim();
+  function runLocalTranslation() {
     const rawInput = document.getElementById('clinical-input').value.trim();
     const gradeLevel = document.getElementById('reading-grade').value;
-    const persona = document.getElementById('patient-persona').value;
-    const translateBtn = document.getElementById('translate-btn');
-
-    if (!apiKey) {
-      alert("Please enter and save your Google Gemini API Key at the top before translating.");
-      return;
-    }
 
     if (!rawInput) {
       alert("Please enter medical text, lab results, or clinical jargon to translate.");
       return;
     }
 
-    translateBtn.disabled = true;
-    translateBtn.textContent = "AI Translating & Auditing...";
-    document.getElementById('translated-output').innerText = "Analyzing complex clinical concepts, labs, and verifying safety...";
-    document.getElementById('lab-safety-container').innerHTML = '';
+    let translatedText = rawInput;
+    let foundJargon = [];
+    let analogies = [];
+    let isUnsafe = false;
+    let criticalAlert = false;
 
-    const systemPrompt = `
-You are TranslaNurse, a clinical nurse educator and health literacy expert.
-Your job:
-1. Identify and extract ALL complex medical terms, lab results, and abbreviations in the input.
-2. Translate the explanation into safe, empathetic, patient-friendly education strictly tailored to:
-   - Target Reading Level: ${gradeLevel}
-   - Cultural/Demographic Persona: ${persona}
-   - IMPORTANT FORMATTING: Break the explanation into short paragraphs using double line breaks (\\n\\n). Do not output a single massive block of text. Use bullet points if helpful.
-3. Provide a simple, fun analogy specifically for kids (e.g., comparing blood vessels to pipes, or white blood cells to superheroes).
-4. Perform a rigorous clinical safety audit ensuring that critical instructions are preserved.
-5. Evaluate any lab results, vitals, or conditions mentioned. Determine if they are generally "SAFE" (stable/normal) or "UNSAFE - Must consult a doctor" (abnormal/critical).
+    // Scan dictionary and replace terms
+    medicalDictionary.forEach(term => {
+      if (term.regex.test(rawInput)) {
+        foundJargon.push(term.regex.source.replace(/\\gi|\||\(|\)|\?|\:/g, '').replace('6-9.d', 'High Potassium'));
+        analogies.push(term.analogy);
+        
+        if (term.safe === false) isUnsafe = true;
+        if (term.alert === true) criticalAlert = true;
 
-You must respond ONLY with a raw JSON object matching this exact schema (do not wrap in markdown or formatting other than valid JSON):
-{
-  "patientEducation": "Clear, formatted explanation with paragraph breaks (\\n\\n).",
-  "kidAnalogy": "A short, fun, easy-to-understand analogy for a child.",
-  "labSafetyStatus": "Output EXACTLY 'SAFE' or 'UNSAFE - Must consult a doctor'",
-  "jargonDetected": ["List of all difficult terms converted"],
-  "readingLevelScore": "Evaluation of literacy grade",
-  "culturalFitScore": "Evaluation of alignment",
-  "safetyScore": "Clinical safety status regarding instructions",
-  "clinicalAuditPoints": ["Notes detailing how jargon was simplified safely."]
-}
-`;
-
-    const primaryUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
-    const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
-
-    const requestBody = {
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: `${systemPrompt}\n\nClinical Input: "${rawInput}"` }]
-        }
-      ]
-    };
-
-    try {
-      let response = await fetch(primaryUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody)
-      });
-
-      if (!response.ok) {
-        response = await fetch(fallbackUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestBody)
-        });
+        translatedText = translatedText.replace(term.regex, `[${term.simple}]`);
       }
+    });
 
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error?.message || "Failed to communicate with Gemini API.");
-      }
+    // Formatting with Double Spacing for readability
+    const formattedPatientText = `Here is what this means for you:\n\n` + 
+      translatedText + 
+      `\n\nPlease let your care team know if you have any questions.`;
 
-      const data = await response.json();
-      const rawText = data.candidates[0].content.parts[0].text;
-      
-      let cleanJson = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
-      const result = JSON.parse(cleanJson);
-
-      displayResults(result);
-      saveHistory(rawInput, result.labSafetyStatus, result.patientEducation);
-
-    } catch (error) {
-      alert("API Communication Error: " + error.message);
-      document.getElementById('translated-output').innerText = "Translation failed. Ensure your API key is correct and try again.";
-    } finally {
-      translateBtn.disabled = false;
-      translateBtn.textContent = "Translate & Audit with Gemini";
+    // Safety Tagging
+    let safetyHtml = '';
+    let safetyStatus = 'SAFE';
+    if (criticalAlert) {
+      safetyStatus = 'CRITICAL - Seek Immediate Care';
+      safetyHtml = `<span class="badge lab-unsafe">🚨 UNSAFE - Must consult a doctor</span>`;
+    } else if (isUnsafe) {
+      safetyStatus = 'Monitor Closely';
+      safetyHtml = `<span class="badge lab-unsafe">🚨 UNSAFE - Must consult a doctor</span>`;
+    } else {
+      safetyHtml = `<span class="badge lab-safe">✅ SAFE</span>`;
     }
-  }
 
-  function displayResults(data) {
-    // 1. Render Spaced Patient Material
-    document.getElementById('translated-output').innerText = data.patientEducation || "Translation completed.";
+    // Set UI Elements
+    document.getElementById('translated-output').innerText = formattedPatientText;
+    document.getElementById('lab-safety-container').innerHTML = safetyHtml;
     
-    //
+    if (analogies.length > 0) {
+      document.getElementById('kid-analogy-output').innerText = analogies.join("\n\n");
+    } else {
+      document.getElementById('kid-analogy-output').innerText = "It's like fixing a scraped knee—your body is working hard to heal up!";
+    }
+
+    document.getElementById('score-literacy').textContent = gradeLevel;
+    document.getElementById('score-safety').textContent = safetyStatus;
+
+    let auditHtml = '<div style="margin-bottom: 8px;"><strong>Identified Jargon Converted:</strong><br>';
+    if (foundJargon.length > 0) {
+      foundJargon.forEach(term => {
+        auditHtml += `<span class="badge badge-jargon">${term}</span>`;
+      });
+      auditHtml += `</div><ul class="audit-list"><li>Translated medical terminology into plain language.</li><li>Added paragraph breaks for easier reading.</li></ul>`;
+    } else {
+      auditHtml += `<em>No heavy jargon detected in our local system.</em></div>`;
+    }
+
+    document.getElementById('audit-details').innerHTML = auditHtml;
+  }
+</script>
+</body>
+</html>
