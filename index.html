@@ -424,7 +424,7 @@
 <body>
 
 <div class="container">
-  <!-- CLEAN HEADER WITHOUT LOGO -->
+  <!-- CLEAN HEADER -->
   <header>
     <div class="header-titles">
       <h1>TranslaNurse Engine</h1>
@@ -547,10 +547,10 @@
 
 <script>
   /* =========================================
-     CONFIGURATION & THEME
+     CONFIGURATION & THEME (NEW API KEY)
      ========================================= */
-  const keyPart1 = "AQ.Ab8RN6J_YZwcA3PysVoSz"; 
-  const keyPart2 = "RU8dYotRobKEY-dyifHPy4m0kjwow"; 
+  const keyPart1 = "AQ.Ab8RN6J5Che7o0cBye"; 
+  const keyPart2 = "6ipkzGkZtCB3dCPS1MhJaHRGd1FvgOdw"; 
   const GEMINI_API_KEY = keyPart1 + keyPart2;
 
   function toggleTheme() {
@@ -575,7 +575,7 @@
   document.addEventListener('DOMContentLoaded', renderHistory);
 
   /* =========================================
-     CORE TRANSLATION ENGINE (LOCKED TO 3.8-FLASH)
+     CORE TRANSLATION ENGINE (LOCKED TO 3.5-FLASH-LITE)
      ========================================= */
   async function runTranslationEngine() {
     const rawInput = document.getElementById('clinical-input').value.trim();
@@ -634,7 +634,8 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
   "safetyScore": "Preserved Clinical Safety"
 }`;
 
-    const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${GEMINI_API_KEY}`;
+    // Locked to the Gemini 3.5 Flash-Lite endpoint
+    const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`;
 
     let maxRetries = 3;
     let attempt = 0;
@@ -809,16 +810,16 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
       output: output.length > 150 ? output.substring(0, 150) + '...' : output
     };
 
-    let history = JSON.parse(localStorage.getItem('translanurse_v7_history')) || [];
+    let history = JSON.parse(localStorage.getItem('translanurse_v8_history')) || [];
     history.unshift(item);
     if (history.length > 30) history = history.slice(0, 30);
-    localStorage.setItem('translanurse_v7_history', JSON.stringify(history));
+    localStorage.setItem('translanurse_v8_history', JSON.stringify(history));
     renderHistory();
   }
 
   function renderHistory() {
     const tbody = document.getElementById('history-rows');
-    const history = JSON.parse(localStorage.getItem('translanurse_v7_history')) || [];
+    const history = JSON.parse(localStorage.getItem('translanurse_v8_history')) || [];
 
     if (history.length === 0) {
       tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No translation history recorded yet.</td></tr>`;
@@ -853,7 +854,7 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
   }
 
   function reloadItem(id) {
-    const history = JSON.parse(localStorage.getItem('translanurse_v7_history')) || [];
+    const history = JSON.parse(localStorage.getItem('translanurse_v8_history')) || [];
     const found = history.find(e => e.id === id);
     if (found) {
       document.getElementById('clinical-input').value = found.input.replace('...', '');
@@ -862,15 +863,15 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
   }
 
   function deleteItem(id) {
-    let history = JSON.parse(localStorage.getItem('translanurse_v7_history')) || [];
+    let history = JSON.parse(localStorage.getItem('translanurse_v8_history')) || [];
     history = history.filter(e => e.id !== id);
-    localStorage.setItem('translanurse_v7_history', JSON.stringify(history));
+    localStorage.setItem('translanurse_v8_history', JSON.stringify(history));
     renderHistory();
   }
 
   function clearAllHistory() {
     if (confirm("Are you sure you want to permanently clear your history log?")) {
-      localStorage.removeItem('translanurse_v7_history');
+      localStorage.removeItem('translanurse_v8_history');
       renderHistory();
     }
   }
