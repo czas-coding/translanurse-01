@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TranslaNurse - Advanced Clinical AI Translator</title>
+  <!-- TAB ICON LOGO -->
+  <link rel="icon" type="image/jpeg" href="TranslaNurse (1).jpg">
   <style>
     /* =========================================
        CSS VARIABLES & THEME SETUP
@@ -82,6 +84,21 @@
       margin-bottom: 24px;
       border-bottom: 2px solid var(--border);
       padding-bottom: 16px;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--primary);
+      box-shadow: var(--shadow);
     }
 
     .header-titles h1 {
@@ -424,10 +441,14 @@
 <body>
 
 <div class="container">
+  <!-- HEADER WITH LOGO -->
   <header>
-    <div class="header-titles">
-      <h1>TranslaNurse Engine</h1>
-      <p>Secure Clinical AI Translator, Detailed Plain Language Engine & Safety Auditor</p>
+    <div class="header-brand">
+      <img src="TranslaNurse (1).jpg" alt="TranslaNurse Logo" class="header-logo">
+      <div class="header-titles">
+        <h1>TranslaNurse Engine</h1>
+        <p>Secure Clinical AI Translator, Detailed Plain Language Engine & Safety Auditor</p>
+      </div>
     </div>
     <button class="theme-btn" onclick="toggleTheme()" id="theme-toggle">
       🌙 Dark Mode
@@ -574,7 +595,7 @@
   document.addEventListener('DOMContentLoaded', renderHistory);
 
   /* =========================================
-     CORE TRANSLATION ENGINE (WITH SMART TAGS)
+     CORE TRANSLATION ENGINE
      ========================================= */
   async function runTranslationEngine() {
     const rawInput = document.getElementById('clinical-input').value.trim();
@@ -606,7 +627,7 @@ Target Specifications:
 - Audience Persona: ${persona}
 
 Rules for Safety Tagging:
-1. "SAFE": Use this if the input describes normal lab values, standard anatomical terms (like antecubital fossa), educational concepts, or routine non-urgent instructions.
+1. "SAFE": Use this if the input describes normal lab values, standard anatomical terms, educational concepts, or routine non-urgent instructions.
 2. "CAUTION - Monitor & Follow-Up": Use this if the input shows mild abnormalities or terms that require careful monitoring and routine physician follow-up.
 3. "UNSAFE - Must consult a doctor": Use this ONLY if the input describes dangerous, critical abnormal values or high-risk emergent clinical findings. Do NOT flag normal terms or standard anatomical inputs as unsafe.
 
