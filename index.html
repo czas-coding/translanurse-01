@@ -26,6 +26,9 @@
       --analogy-bg: #fff7ed;
       --analogy-border: #f97316;
       --analogy-text: #9a3412;
+      --tagalog-bg: #f0fdf4;
+      --tagalog-border: #22c55e;
+      --tagalog-text: #15803d;
       --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
 
@@ -47,6 +50,9 @@
       --analogy-bg: #431407;
       --analogy-border: #ea580c;
       --analogy-text: #fdba74;
+      --tagalog-bg: #052e16;
+      --tagalog-border: #16a34a;
+      --tagalog-text: #86efac;
       --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
     }
 
@@ -250,6 +256,17 @@
       min-height: 100px;
     }
 
+    .tagalog-box {
+      background-color: var(--tagalog-bg);
+      border-left: 4px solid var(--tagalog-border);
+      color: var(--tagalog-text);
+      padding: 16px;
+      border-radius: 0 8px 8px 0;
+      font-size: 1rem;
+      font-weight: 500;
+      white-space: pre-wrap;
+    }
+
     .analogy-box {
       background-color: var(--analogy-bg);
       border-left: 4px solid var(--analogy-border);
@@ -416,7 +433,7 @@
       }
       .grid-main { grid-template-columns: 1fr; display: block; }
       .card { border: none; box-shadow: none; padding: 0; }
-      .result-box, .analogy-box, .reasoning-box, .jargon-list li { border: 1px solid #ccc; background: #fff; color: #000; }
+      .result-box, .tagalog-box, .analogy-box, .reasoning-box, .jargon-list li { border: 1px solid #ccc; background: #fff; color: #000; }
       .badge { border: 1px solid #000; background: #fff; color: #000; }
     }
   </style>
@@ -424,7 +441,6 @@
 <body>
 
 <div class="container">
-  <!-- CLEAN HEADER -->
   <header>
     <div class="header-titles">
       <h1>TranslaNurse Engine</h1>
@@ -441,7 +457,7 @@
       <h2 class="card-header">1. Clinical Input & Patient Context</h2>
 
       <label class="field-label" for="clinical-input">Medical Jargon, Clinical Notes, or Lab Results</label>
-      <textarea id="clinical-input" placeholder="Paste doctor's notes, lab results, or complex terminology here...&#10;&#10;Examples:&#10;- 'WBC count is normal at 7,500/mcL'&#10;- 'K+ is 6.8 mEq/L, peaked T waves'&#10;- 'Instructions: NPO after midnight'"></textarea>
+      <textarea id="clinical-input" placeholder="Paste doctor's notes, lab results, or complex terminology here...&#10;&#10;Examples:&#10;- 'Left ventricular systolic dysfunction secondary to myocardial infarction...'"></textarea>
 
       <label class="field-label" for="reading-grade">Target Health Literacy Level</label>
       <select id="reading-grade">
@@ -479,6 +495,11 @@
       <label class="field-label">What This Means (Detailed Explanation)</label>
       <div id="translated-output" class="result-box">
         <em>Your highly detailed, easy-to-read explanation will appear here...</em>
+      </div>
+
+      <label class="field-label">🇵🇭 Tagalog Translation (Maikling Paliwanag sa Tagalog)</label>
+      <div id="tagalog-output" class="tagalog-box">
+        <em>Maikling paliwanag sa Tagalog para madaling maintindihan...</em>
       </div>
 
       <label class="field-label">What Can I Do? (Action Plan)</label>
@@ -547,7 +568,7 @@
 
 <script>
   /* =========================================
-     CONFIGURATION & THEME (NEW API KEY)
+     CONFIGURATION & THEME
      ========================================= */
   const keyPart1 = "AQ.Ab8RN6J5Che7o0cBye"; 
   const keyPart2 = "6ipkzGkZtCB3dCPS1MhJaHRGd1FvgOdw"; 
@@ -575,7 +596,7 @@
   document.addEventListener('DOMContentLoaded', renderHistory);
 
   /* =========================================
-     CORE TRANSLATION ENGINE (LOCKED TO 3.5-FLASH-LITE)
+     CORE TRANSLATION ENGINE (WITH TAGALOG AUTO-TRANSLATE)
      ========================================= */
   async function runTranslationEngine() {
     const rawInput = document.getElementById('clinical-input').value.trim();
@@ -594,6 +615,7 @@
     loader.style.display = 'inline-block';
     btnText.textContent = "Processing Details...";
     document.getElementById('translated-output').innerText = "Analyzing deep medical context...";
+    document.getElementById('tagalog-output').innerText = "Isinasalin sa Tagalog...";
     document.getElementById('action-plan-output').innerText = "Generating action plan...";
     document.getElementById('lab-safety-container').innerHTML = '';
     document.getElementById('safety-reasoning-container').style.display = 'none';
@@ -612,16 +634,18 @@ Rules for Safety Tagging:
 3. "UNSAFE - Must consult a doctor": Use this ONLY if the input describes dangerous, critical abnormal values or high-risk emergent clinical findings. Do NOT flag normal terms or standard anatomical inputs as unsafe.
 
 Requirements:
-1. WHAT IT MEANS: Comprehensive, detailed explanation. Use double line breaks (\\n\\n).
-2. WHAT CAN I DO: Specific, detailed, bulleted "Action Plan".
-3. KID-FRIENDLY ANALOGY: A short, fun analogy for a child.
-4. SAFETY STATUS: Output EXACTLY ONE of these three strings: "SAFE", "CAUTION - Monitor & Follow-Up", or "UNSAFE - Must consult a doctor".
-5. SAFETY REASONING: Detailed explanation of why this safety tag was chosen.
-6. JARGON EXPLANATION: Identify complex medical words and explain them clearly.
+1. WHAT IT MEANS: Comprehensive, detailed explanation in English. Use double line breaks (\\n\\n).
+2. TAGALOG TRANSLATION ("tagalogSummary"): Provide a short, low-literacy, very easy-to-understand Tagalog summary (maikling paliwanag sa simpleng Tagalog para sa pasyente).
+3. WHAT CAN I DO: Specific, detailed, bulleted "Action Plan".
+4. KID-FRIENDLY ANALOGY: A short, fun analogy for a child.
+5. SAFETY STATUS: Output EXACTLY ONE of these three strings: "SAFE", "CAUTION - Monitor & Follow-Up", or "UNSAFE - Must consult a doctor".
+6. SAFETY REASONING: Detailed explanation of why this safety tag was chosen.
+7. JARGON EXPLANATION: Identify complex medical words and explain them clearly.
 
 Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping, just raw JSON:
 {
-  "detailedExplanation": "Deep, detailed, formatted explanation (use \\n\\n).",
+  "detailedExplanation": "Deep, detailed, formatted explanation in English (use \\n\\n).",
+  "tagalogSummary": "Maikling paliwanag sa simpleng Tagalog na madaling maintindihan ng karaniwang pasyente.",
   "actionPlan": ["Detailed action 1", "Detailed action 2"],
   "kidAnalogy": "A short, fun analogy for a child.",
   "labSafetyStatus": "SAFE or CAUTION - Monitor & Follow-Up or UNSAFE - Must consult a doctor",
@@ -634,7 +658,6 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
   "safetyScore": "Preserved Clinical Safety"
 }`;
 
-    // Locked to the Gemini 3.5 Flash-Lite endpoint
     const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`;
 
     let maxRetries = 3;
@@ -694,33 +717,14 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
      OFFLINE FALLBACK ENGINE
      ========================================= */
   function runOfflineFallback(input, grade) {
-    const localDict = [
-      { term: "Aphasia", regex: /aphasia/gi, replace: "difficulty speaking or understanding words", explanation: "Aphasia is a condition caused by brain damage that affects your ability to communicate.", safe: "SAFE", action: "Be patient with communication." },
-      { term: "WBC", regex: /wbc|white blood cell/gi, replace: "white blood cells", explanation: "White blood cells are your body's infection-fighting immune cells.", safe: "SAFE", action: "Review lab values with your healthcare provider." },
-      { term: "Thrombocytopenia", regex: /thrombocytopenia/gi, replace: "low blood platelets", explanation: "Low platelets reduce blood clotting capability.", safe: "UNSAFE - Must consult a doctor", action: "Avoid bruising activities." }
-    ];
-
-    let translated = input;
-    let jargonFound = [];
-    let actions = [];
-    let safetyStatus = "SAFE";
-
-    localDict.forEach(item => {
-      if (item.regex.test(input)) {
-        jargonFound.push({ term: item.term, explanation: item.explanation });
-        actions.push(item.action);
-        translated = translated.replace(item.regex, `[${item.replace}]`);
-        if (item.safetyStatus === "UNSAFE - Must consult a doctor") safetyStatus = item.safetyStatus;
-      }
-    });
-
     const mockResult = {
-      detailedExplanation: "Offline Mode Translation:\n\n" + translated,
-      actionPlan: actions.length > 0 ? actions : ["Consult your primary care provider."],
+      detailedExplanation: "Offline Mode Translation:\n\n" + input,
+      tagalogSummary: "Paumanhin, kasalukuyang offline ang sistema. Mangyaring kumunsulta sa doktor para sa tamang paliwanag.",
+      actionPlan: ["Consult your primary care provider."],
       kidAnalogy: "Your body is working like a well-organized team.",
-      labSafetyStatus: safetyStatus,
-      safetyReasoning: "Evaluated using offline clinical dictionary rules.",
-      jargonBreakdown: jargonFound.length > 0 ? jargonFound : [{ term: "General Term", explanation: "Standard term." }],
+      labSafetyStatus: "UNSAFE - Must consult a doctor",
+      safetyReasoning: "Evaluated using offline fallback rules.",
+      jargonBreakdown: [{ term: "General Term", explanation: "Standard clinical term." }],
       readingLevelScore: grade + " (Offline)",
       culturalFitScore: "Standard",
       safetyScore: "Local Verified"
@@ -735,6 +739,7 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
      ========================================= */
   function displayResults(data) {
     document.getElementById('translated-output').innerText = data.detailedExplanation || "Translation completed.";
+    document.getElementById('tagalog-output').innerText = data.tagalogSummary || "Walang naibigay na Tagalog na paliwanag.";
     document.getElementById('kid-analogy-output').innerText = data.kidAnalogy || "No analogy provided.";
 
     let actionsHtml = `<ul style="margin:0; padding-left:20px;">`;
@@ -786,10 +791,10 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
 
   function exportToText() {
     const explanation = document.getElementById('translated-output').innerText;
+    const tagalog = document.getElementById('tagalog-output').innerText;
     const actions = document.getElementById('action-plan-output').innerText;
-    const reasoning = document.getElementById('safety-reasoning-output').innerText;
     
-    const content = `TRANSLANURSE PATIENT EDUCATION\n\nEXPLANATION:\n${explanation}\n\nWHAT YOU NEED TO DO:\n${actions}\n\nSAFETY REASONING:\n${reasoning}`;
+    const content = `TRANSLANURSE PATIENT EDUCATION\n\nEXPLANATION:\n${explanation}\n\nTAGALOG SUMMARY:\n${tagalog}\n\nWHAT YOU NEED TO DO:\n${actions}`;
     
     const blob = new Blob([content], { type: 'text/plain' });
     const a = document.createElement('a');
@@ -810,16 +815,16 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
       output: output.length > 150 ? output.substring(0, 150) + '...' : output
     };
 
-    let history = JSON.parse(localStorage.getItem('translanurse_v8_history')) || [];
+    let history = JSON.parse(localStorage.getItem('translanurse_v9_history')) || [];
     history.unshift(item);
     if (history.length > 30) history = history.slice(0, 30);
-    localStorage.setItem('translanurse_v8_history', JSON.stringify(history));
+    localStorage.setItem('translanurse_v9_history', JSON.stringify(history));
     renderHistory();
   }
 
   function renderHistory() {
     const tbody = document.getElementById('history-rows');
-    const history = JSON.parse(localStorage.getItem('translanurse_v8_history')) || [];
+    const history = JSON.parse(localStorage.getItem('translanurse_v9_history')) || [];
 
     if (history.length === 0) {
       tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No translation history recorded yet.</td></tr>`;
@@ -854,7 +859,7 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
   }
 
   function reloadItem(id) {
-    const history = JSON.parse(localStorage.getItem('translanurse_v8_history')) || [];
+    const history = JSON.parse(localStorage.getItem('translanurse_v9_history')) || [];
     const found = history.find(e => e.id === id);
     if (found) {
       document.getElementById('clinical-input').value = found.input.replace('...', '');
@@ -863,15 +868,15 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
   }
 
   function deleteItem(id) {
-    let history = JSON.parse(localStorage.getItem('translanurse_v8_history')) || [];
+    let history = JSON.parse(localStorage.getItem('translanurse_v9_history')) || [];
     history = history.filter(e => e.id !== id);
-    localStorage.setItem('translanurse_v8_history', JSON.stringify(history));
+    localStorage.setItem('translanurse_v9_history', JSON.stringify(history));
     renderHistory();
   }
 
   function clearAllHistory() {
     if (confirm("Are you sure you want to permanently clear your history log?")) {
-      localStorage.removeItem('translanurse_v8_history');
+      localStorage.removeItem('translanurse_v9_history');
       renderHistory();
     }
   }
