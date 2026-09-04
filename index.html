@@ -631,7 +631,8 @@ Respond ONLY with a valid JSON object matching this schema. NO markdown wrapping
   "safetyScore": "e.g., Preserved NPO status"
 }`;
 
-    const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    // Update your endpoint URL in the JavaScript code to match this working path:
+  const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
     
     try {
       const response = await fetch(apiEndpoint, {
